@@ -41,7 +41,7 @@ START_TIME=$SECONDS
 COUNT=0
 
 while read USERNAME; do
-	USERNAWME=$(echo $USERNAME | awk -F@ '{print $1}')
+	USERNAME=$(echo $USERNAME | awk -F@ '{print $1}')
 	RESULT=$(
 	echo $PASSWORD | kinit --password-file=STDIN $USERNAME 2>&1
 	)
